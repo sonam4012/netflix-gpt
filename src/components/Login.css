@@ -127,4 +127,8 @@
     padding: 8px;
     cursor: pointer;
   }
+  .error{
+    color: red;
+    
+  }
   

@@ -4,9 +4,24 @@ padding-top: 10px;
 padding-bottom: 20px;
 padding-right: 20px;
 z-index: 10;
+width: 100%;
+display: flex;
+justify-content: space-between;
 background: linear-gradient(to bottom, black);
 }
 
 .image{
 width: 97px;
+}
+.usericon{
+    display: flex;
+    padding: 2px
+}
+.user{
+    width: 35px;
+    height: 40px;
+}
+.button-icon{
+    font-size: bold;
+    margin-top: 20px;
 }

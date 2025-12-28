@@ -1,45 +1,118 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import Header from './Header'
 import './Login.css';
+import { checkValidData } from '../utils/validate';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from '../utils/firebase';
+import { useNavigate } from 'react-router-dom';
+import { updateProfile } from 'firebase/auth';
 
 const Login = () => {
-    const[isSignInForm, setIsSignInForm]= useState(true);
+    const [isSignInForm, setIsSignInForm] = useState(true);
+    const [errorMessage, setErrorMessage] = useState(null);
 
-    const toggleSignInForm = ()=>{
-        setIsSignInForm (!isSignInForm)
+    const navigate = useNavigate();
+    const name = useRef(null);
+    const email = useRef(null);
+    const password = useRef(null);
+
+
+    const handleButtonClick = () => {
+        //validate the form data
+        //useref is used to refrance the tag.
+        const message = checkValidData(email.current.value, password.current.value)
+        setErrorMessage(message);
+        if (message) return;
+
+        if (!isSignInForm) {
+            createUserWithEmailAndPassword(
+                auth,
+                email.current.value,
+                password.current.value
+            )
+                .then((userCredential) => {
+                    // Signed up 
+                    const user = userCredential.user;
+                    updateProfile(user, {
+                        displayName: name.current.value,
+                         photoURL: "https://images.pexels.com/photos/1470405/pexels-photo-1470405.jpeg"
+                      }).then(() => {
+                        navigate("/browser")
+                        
+                      }).catch((error) => {
+                        setErrorMessage(error.message);
+                      });
+                    
+                    
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    setErrorMessage(errorCode + "-" + errorMessage)
+                });
+
+        }
+        else {
+            signInWithEmailAndPassword(
+                auth,
+                email.current.value,
+                password.current.value
+            )
+                .then((userCredential) => {
+                    // Signed in 
+                    const user = userCredential.user;
+                    // ...
+                    console.log(user)
+                    navigate("/browser")
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    setErrorMessage(errorCode + "-" + errorMessage);
+                });
+        }
+    };
+
+    const toggleSignInForm = () => {
+        setIsSignInForm(!isSignInForm)
     }
-  return (
-    <div>
-      <Header/>
-      <div className='background-image'>
-        <img src="https://assets.nflxext.com/ffe/siteui/vlv3/58622d3e-49bc-482d-8b16-bddc4b672e8e/web/IN-en-20251110-TRIFECTA-perspective_281b0878-5972-49a4-9956-3f0cb5eb039b_medium.jpg"
-        alt="background"/>
-      </div>
-      <form className='form'>
-        <h1 className='heading'>
-            {isSignInForm ? "Sign In" : "Sign Up"}
-        </h1>
-        { !isSignInForm && (
-        <input type="text" 
-        placeholder='Full Name' 
-        className='input-sign'/>
-         )}
+    return (
+        <div>
+            <Header />
+            <div className='background-image'>
+                <img src="https://assets.nflxext.com/ffe/siteui/vlv3/58622d3e-49bc-482d-8b16-bddc4b672e8e/web/IN-en-20251110-TRIFECTA-perspective_281b0878-5972-49a4-9956-3f0cb5eb039b_medium.jpg"
+                    alt="background" />
+            </div>
+            <form onSubmit={(e) => e.preventDefault()} className='form'>
+                <h1 className='heading'>
+                    {isSignInForm ? "Sign In" : "Sign Up"}
+                </h1>
+                {!isSignInForm && (
+                    <input type="text"
+                        placeholder='Full Name'
+                        className='input-sign' />
+                )}
 
-        <input type="text" 
-        placeholder='Email address' 
-        className='input'/>
+                <input
+                    ref={email}
+                    type="text"
+                    placeholder='Email address'
+                    className='input' />
 
-        <input type="password" 
-        placeholder='Password' 
-        className='input-form'/>
+                <input
+                    ref={password}
+                    type="password"
+                    placeholder='Password'
+                    className='input-form' />
+                <p className='error'>{errorMessage}</p>
 
-        <button className='button'>{isSignInForm ? "Sign In" : "Sign Up"}</button>
-        <p className='paragraph' onClick={toggleSignInForm}>{isSignInForm ? 
-        "New to Netflix? Sign Up Now" : 
-        "Already registered? Sign In Now."}</p>
-      </form>
-    </div>
-  )
+                <button className='button' onClick={handleButtonClick}>{isSignInForm ? "Sign In" : "Sign Up"}</button>
+                <p className='paragraph' onClick={toggleSignInForm}>{isSignInForm ?
+                    "New to Netflix? Sign Up Now" :
+                    "Already registered? Sign In Now."}</p>
+            </form>
+        </div>
+    )
 }
 
 export default Login
