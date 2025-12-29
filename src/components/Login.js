@@ -6,11 +6,13 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "fire
 import { auth } from '../utils/firebase';
 import { useNavigate } from 'react-router-dom';
 import { updateProfile } from 'firebase/auth';
+import { useDispatch } from 'react-redux';
+import { addUser } from '../utils/userSlice';
 
 const Login = () => {
     const [isSignInForm, setIsSignInForm] = useState(true);
     const [errorMessage, setErrorMessage] = useState(null);
-
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const name = useRef(null);
     const email = useRef(null);
@@ -37,6 +39,15 @@ const Login = () => {
                         displayName: name.current.value,
                          photoURL: "https://images.pexels.com/photos/1470405/pexels-photo-1470405.jpeg"
                       }).then(() => {
+                        const {uid, email, displayName, photoURL} = auth.currentUser;
+                            dispatch(
+                                addUser({
+                                    uid: uid, 
+                                    email: email, 
+                                    displayName: displayName, 
+                                    photoURL: photoURL
+                                })
+                            );
                         navigate("/browser")
                         
                       }).catch((error) => {
